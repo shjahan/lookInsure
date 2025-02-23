@@ -80,6 +80,7 @@ Enjoy It! The application will start on [http://localhost:8080](http://localhos
 - `DELETE /quotes/{id}` - Delete a quote
 - `GET /quotes` - List all quotes
 - `GET /quotes/aggregate` - Get aggregated quotes with filtering and sorting
+- `GET /quotes/aggregate/specification` - Get aggregated quotes with pagination and specification
 - `GET /providers`  - List all providers
 
 ### **Api Requests**
@@ -112,6 +113,25 @@ Get aggregated quotes:
 ```jsx
 GET http://localhost:8080/quotes/aggregate?coverageType=BUSINESS&sortBy=best
 ```
+
+Get aggregated quotes with specifications:
+
+```jsx
+curl --location --request GET 'http://localhost:8080/quotes/aggregate/specification' \
+--header 'Content-Type: application/json' \
+--data '{
+"coverageType" : "BUSINESS",
+"price" : null,
+"providerId" : null,
+"deductibleAmount" : null,
+"coverageLimit" : null,
+"sortBy" : "id",
+"isAscending" : false,
+"pageNumber" : 1,
+"pageSize" :  2
+}'
+```
+
 List all quotes
 
 ```jsx
