@@ -1,0 +1,34 @@
+spring:
+  application:
+    name: Quotes
+  datasource:
+    url: jdbc:postgresql://localhost:5432/quotes
+    username: quotes
+    password: quotes
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  liquibase:
+    change-log: classpath:config/liquibase/master.xml
+    enabled: true
+  cache:
+    type: redis
+    redis:
+      time-to-live: 900000 # 15 minutes
+      cache-null-values: false
+
+redis:
+  host: redis
+  port: 6379
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html

@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/quotes
+      - SPRING_DATASOURCE_USERNAME=quotes
+      - SPRING_DATASOURCE_PASSWORD=quotes
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres:17.2
+    environment:
+      - POSTGRES_DATABASE=quotes
+      - POSTGRES_USER=quotes
+      - POSTGRES_PASSWORD=quotes
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    healthcheck:
+      test: [ 'CMD-SHELL', 'pg_isready -U $${POSTGRES_USER}' ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - 5432:5432
+
+  redis:
+    image: redis:7.4.1
+    ports:
+      - 6379:6379
