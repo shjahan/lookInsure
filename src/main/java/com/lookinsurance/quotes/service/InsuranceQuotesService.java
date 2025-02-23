@@ -1,9 +1,11 @@
 package com.lookinsurance.quotes.service;
 
 import com.lookinsurance.quotes.dto.request.QuoteDTO;
+import com.lookinsurance.quotes.dto.request.pagination.QuotePaginationRequest;
 import com.lookinsurance.quotes.dto.response.QuoteResponseDTO;
 
 import java.util.List;
+
 public interface InsuranceQuotesService {
 
     QuoteResponseDTO updateQuote(Long id, QuoteDTO quoteDTO);
@@ -17,4 +19,6 @@ public interface InsuranceQuotesService {
     QuoteResponseDTO getQuoteById(Long id);
 
     QuoteResponseDTO createQuote(QuoteDTO quoteDTO);
+
+    List<QuoteResponseDTO> getAggregatedQuotesBySpecification(QuotePaginationRequest request);
 }

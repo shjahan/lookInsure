@@ -3,16 +3,28 @@ package com.lookinsurance.quotes.service.imp;
 import com.lookinsurance.quotes.domain.InsuranceProvider;
 import com.lookinsurance.quotes.domain.InsuranceQuote;
 import com.lookinsurance.quotes.dto.request.QuoteDTO;
+import com.lookinsurance.quotes.dto.request.pagination.QuotePaginationRequest;
 import com.lookinsurance.quotes.dto.response.QuoteResponseDTO;
 import com.lookinsurance.quotes.enumeration.CoverageType;
 import com.lookinsurance.quotes.exception.ResourceNotFoundException;
+import com.lookinsurance.quotes.filter.BasicFilter;
+import com.lookinsurance.quotes.filter.exact.ExactDoubleFilter;
+import com.lookinsurance.quotes.filter.exact.ExactEnumFilter;
 import com.lookinsurance.quotes.repository.InsuranceProviderRepository;
 import com.lookinsurance.quotes.repository.InsuranceQuotesRepository;
 import com.lookinsurance.quotes.service.InsuranceQuotesService;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -41,6 +53,7 @@ public class InsuranceQuotesServiceImpl implements InsuranceQuotesService {
 
         return mapToDTO(quote);
     }
+
 
     @Override
     @Cacheable(value = "quotes", key = "#id")
@@ -92,6 +105,41 @@ public class InsuranceQuotesServiceImpl implements InsuranceQuotesService {
                 .collect(Collectors.toList());
     }
 
+    public List<QuoteResponseDTO> getAggregatedQuotesBySpecification(QuotePaginationRequest request) {
+        Page<InsuranceQuote> quotes = quotesRepository.findAll(getAccountContractSpecification(request), getPageRequest(request));
+        return quotes.stream()
+                .map(this::mapToDTO)
+                .sorted(getComparator(request.getSortBy()))
+                .collect(Collectors.toList());
+    }
+
+    public Specification<InsuranceQuote> getAccountContractSpecification(QuotePaginationRequest filterRequestParam) {
+        return (root, criteriaQuery, criteriaBuilder) -> criteriaBuilder
+                .and(getPredicateList(filterRequestParam, root, criteriaQuery, criteriaBuilder)
+                        .toArray(new Predicate[0]));
+    }
+
+    public static PageRequest getPageRequest(QuotePaginationRequest paginationRequest) {
+        return PageRequest.of(paginationRequest.getPageNumber().intValue() - 1,
+                paginationRequest.getPageSize().intValue(),
+                Sort.by(paginationRequest.getIsAscending() ? Sort.Direction.ASC : Sort.Direction.DESC,
+                        paginationRequest.getSortBy()));
+    }
+
+    public List<Predicate> getPredicateList(QuotePaginationRequest filterRequestParam, Root<InsuranceQuote> root,
+                                            CriteriaQuery<?> query,
+                                            CriteriaBuilder criteriaBuilder) {
+        BasicFilter<InsuranceQuote> basicFilter = new BasicFilter<>();
+        ExactEnumFilter<InsuranceQuote> coverageTypeFilter = new ExactEnumFilter<>(basicFilter, "coverageType", filterRequestParam.getCoverageType());
+        ExactDoubleFilter<InsuranceQuote> priceFilter = null;
+        if (filterRequestParam.getPrice() != null) {
+            priceFilter = new ExactDoubleFilter<>(coverageTypeFilter, "price", filterRequestParam.getPrice());
+        }
+        //todo same above method we can create new filter
+
+        return priceFilter != null ? priceFilter.getPredicate(root, query, criteriaBuilder) :
+                coverageTypeFilter.getPredicate(root, query, criteriaBuilder);
+    }
 
     private Comparator<QuoteResponseDTO> getComparator(String sortBy) {
         return switch (sortBy.toLowerCase()) {
@@ -134,4 +182,5 @@ public class InsuranceQuotesServiceImpl implements InsuranceQuotesService {
         quote.setTerms(dto.getTerms());
         return quote;
     }
+
 }

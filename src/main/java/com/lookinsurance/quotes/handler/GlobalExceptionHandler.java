@@ -19,7 +19,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
         ErrorResponse error = new ErrorResponse("An unexpected error occurred");
-        log.error("error:" , ex.getMessage());
+        log.debug("error:" , ex.getMessage());
         return ResponseEntity.internalServerError().body(error);
     }
 

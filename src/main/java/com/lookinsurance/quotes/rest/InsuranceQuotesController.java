@@ -1,6 +1,7 @@
 package com.lookinsurance.quotes.rest;
 
 import com.lookinsurance.quotes.dto.request.QuoteDTO;
+import com.lookinsurance.quotes.dto.request.pagination.QuotePaginationRequest;
 import com.lookinsurance.quotes.dto.response.QuoteResponseDTO;
 import com.lookinsurance.quotes.service.InsuranceQuotesService;
 import jakarta.validation.Valid;
@@ -41,6 +42,11 @@ public class InsuranceQuotesController {
             @RequestParam(required = false) String coverageType,
             @RequestParam(required = false, defaultValue = "price") String sortBy) {
         return ResponseEntity.ok(insuranceQuotesService.getAggregatedQuotes(coverageType, sortBy));
+    }
+
+    @GetMapping("/aggregate/specification")
+    public ResponseEntity<List<QuoteResponseDTO>> getAggregatedQuotesBySpecification(@RequestBody QuotePaginationRequest request) {
+        return ResponseEntity.ok(insuranceQuotesService.getAggregatedQuotesBySpecification(request));
     }
 
     @PutMapping("/{id}")
